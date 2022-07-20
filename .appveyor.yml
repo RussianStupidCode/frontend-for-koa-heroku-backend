@@ -10,18 +10,14 @@ cache: node_modules # кеширование
 
 install:
   - npm install # команда установки зависимостей
-  - npm install pm2 -g
 
 build: off # отключаем встроенную в appveyor систему сборки
 
 build_script:
   - npm run build # команда сборки
-  - pm2 --name HelloWorld start npm -- start
 
 test_script:
   - npm run lint && npm test # скрипт тестирования
-  - npm run e2e # скрипт тестирования e2e
-  - pm2 delete 0 # убить сервер
 
 deploy_script: # скрипт развёртывания
   - git config --global credential.helper store
