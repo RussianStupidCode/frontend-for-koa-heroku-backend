@@ -3,10 +3,10 @@ import { CONTROL_TYPES, getContolType } from './control_types';
 import CRUDModal from './crudModal';
 import Input from './input';
 import Table from './table';
+import * as ticket from '../api/tickets';
 
 export default class CRM {
   constructor() {
-    this.counterId = 0;
     this.lastSelectedItemId = null;
 
     this.nonactiveFilter = document.createElement('div');
@@ -43,7 +43,7 @@ export default class CRM {
     this.table = new Table();
 
     this.bodyEl = document.createElement('div');
-    this.bodyEl.classList.add('crm-body', 'px-5');
+    this.bodyEl.classList.add('crm-body', 'px-1');
 
     this.table.bindToDOM(this.bodyEl);
 
@@ -61,6 +61,39 @@ export default class CRM {
     this.createCRUDModalInputs();
 
     this.setListeners();
+    this.fetchAllTickets();
+  }
+
+  fetchAllTickets() {
+    this.table.reset();
+    this.blockingCRM();
+
+    const ticketsPromise = ticket.all();
+
+    ticketsPromise
+      .then((response) => response.json())
+      .then((data) => {
+        data.forEach((item) => {
+          this.table.addNewItem(
+            item.id,
+            item.name,
+            item.description,
+            item.status,
+            item.created,
+            (status) => {
+              ticket.update({ id: item.id, status });
+            }
+          );
+
+          const allTicketInfo = ticket.get(item.id);
+          allTicketInfo
+            .then((response) => response.json())
+            .then((json) => {
+              this.table.updateItem(json.id, json.name, json.description);
+            });
+        });
+        this.unblockingCRM();
+      });
   }
 
   createCRUDModalInputs() {
@@ -81,6 +114,10 @@ export default class CRM {
 
   setListeners() {
     this.el.addEventListener('click', (event) => {
+      if (this.isInit) {
+        return;
+      }
+
       const { target } = event;
 
       const control = target.closest('.control');
@@ -101,7 +138,7 @@ export default class CRM {
         this.blockingCRM();
         this.lastSelectedItemId = control.closest('.crm-row').dataset.id;
 
-        const item = this.table.getItem(this.lastSelectedItemId);
+        const item = this.table.getItem(Number(this.lastSelectedItemId));
 
         this.crudModal.setInput('title', item.title);
         this.crudModal.setInput('description', item.description);
@@ -116,7 +153,7 @@ export default class CRM {
         this.blockingCRM();
         this.lastSelectedItemId = control.closest('.crm-row').dataset.id;
 
-        const item = this.table.getItem(this.lastSelectedItemId);
+        const item = this.table.getItem(Number(this.lastSelectedItemId));
 
         this.crudModal.setInput('title', item.title);
         this.crudModal.setInput('description', item.description);
@@ -132,25 +169,46 @@ export default class CRM {
   createItem() {
     const title = this.crudModal.getInput('title');
     const description = this.crudModal.getInput('description');
+    const status = this.crudModal.getInput('status');
 
-    this.table.addNewItem(this.counterId, title, description);
-    this.counterId += 1;
+    ticket
+      .create({ title, description, status })
+      .then((response) => response.json())
+      .then((json) => {
+        this.table.addNewItem(
+          json.id,
+          json.name,
+          json.description,
+          json.status,
+          (status) => {
+            ticket.update({ id: json.id, status });
+          }
+        );
 
-    this.unblockingCRM();
+        this.fetchAllTickets();
+      });
   }
 
   deleteItem() {
-    this.table.deleteItem(this.lastSelectedItemId);
-
-    this.unblockingCRM();
+    if (this.lastSelectedItemId !== null) {
+      ticket.remove(this.lastSelectedItemId).then(() => {
+        this.fetchAllTickets();
+      });
+    }
   }
 
   updateItem() {
     const title = this.crudModal.getInput('title');
     const description = this.crudModal.getInput('description');
+    const status = this.crudModal.getInput('status');
 
-    this.table.updateItem(this.lastSelectedItemId, title, description);
-    this.unblockingCRM();
+    ticket
+      .update({ id: this.lastSelectedItemId, title, description, status })
+      .then((response) => response.json())
+      .then((json) => {
+        this.table.updateItem(json.id, json.name, json.description);
+        this.unblockingCRM();
+      });
   }
 
   blockingCRM() {
@@ -164,6 +222,5 @@ export default class CRM {
   bindToDOM(parentEl) {
     parentEl.insertAdjacentElement('beforeEnd', this.el);
     parentEl.insertAdjacentElement('beforeEnd', this.nonactiveFilter);
-    this.unblockingCRM();
   }
 }

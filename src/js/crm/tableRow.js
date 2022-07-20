@@ -5,16 +5,16 @@ import StatusButton from './statusButton';
 import TicketTextBody from './ticketTextBody';
 
 export default class TableRow {
-  constructor(id, title, description, status, created) {
+  constructor(id, title, description, status, created, setStatusCallback) {
     this.el = document.createElement('tr');
     this.el.classList.add('crm-row');
     this.el.dataset.id = id;
 
-    this.statusButton = new StatusButton(status);
+    this.statusButton = new StatusButton(status, setStatusCallback);
     this.ticketBody = new TicketTextBody(title, description);
 
     const titleAndDescriptionBlock = document.createElement('div');
-    titleAndDescriptionBlock.classList.add('title-description-block');
+    titleAndDescriptionBlock.classList.add('title-description-block', 'w-100');
 
     const statusElement = document.createElement('td');
     this.statusButton.bindToDOM(statusElement);
@@ -42,7 +42,7 @@ export default class TableRow {
   }
 
   get id() {
-    return this.el.dataset.id;
+    return Number(this.el.dataset.id);
   }
 
   get title() {

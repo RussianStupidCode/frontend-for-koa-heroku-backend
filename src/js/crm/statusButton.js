@@ -1,8 +1,9 @@
 import SUCCESS_IMG from '../../img/success.png';
 
 export default class StatusButton {
-  constructor(status = false) {
+  constructor(status = false, setStatusCallback) {
     this.statusValue = status;
+    this.setStatusCallback = setStatusCallback;
 
     this.el = document.createElement('button');
     this.el.classList.add(
@@ -43,6 +44,8 @@ export default class StatusButton {
       } else {
         this.image.classList.remove('d-none');
       }
+
+      this.setStatusCallback?.(this.statusValue);
     });
   }
 

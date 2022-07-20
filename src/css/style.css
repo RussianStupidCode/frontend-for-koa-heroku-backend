@@ -144,6 +144,10 @@ img {
   .btn.crud-control {
     font-size: 2vh;
   }
+
+  .ticket-description {
+    font-size: 2vh;
+  }
 }
 
 @media screen and (orientation: landscape) {
@@ -155,6 +159,10 @@ img {
 
   .crud-form {
     font-size: 2vw;
+  }
+
+  .ticket-description {
+    font-size: 1.5vw;
   }
 
   .btn.crud-control {
@@ -204,4 +212,8 @@ img {
 
 .grayscale {
   filter: grayscale(1);
+}
+
+.ticket-title {
+  margin-bottom: 2vw;
 }

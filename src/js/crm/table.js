@@ -1,4 +1,3 @@
-import moment from 'moment';
 import TableRow from './tableRow';
 
 export default class Table {
@@ -27,8 +26,15 @@ export default class Table {
     this.items.splice(itemIndex, 1);
   }
 
-  addNewItem(id, title, description) {
-    const item = new TableRow(id, title, description, false, moment().unix());
+  addNewItem(id, title, description, status, created, setStatusCallback) {
+    const item = new TableRow(
+      id,
+      title,
+      description,
+      status,
+      created,
+      setStatusCallback
+    );
     this.items.push(item);
 
     item.bindToDOM(this.body);
@@ -43,6 +49,14 @@ export default class Table {
 
     item.title = title;
     item.description = description;
+  }
+
+  reset() {
+    this.items.forEach((item) => {
+      item.remove();
+    });
+
+    this.items = [];
   }
 
   getItem(id) {

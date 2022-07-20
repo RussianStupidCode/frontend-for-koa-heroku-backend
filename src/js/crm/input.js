@@ -38,6 +38,7 @@ export default class Input {
     this.el.insertAdjacentElement('beforeend', label);
     this.el.insertAdjacentElement('beforeend', this.input);
     this.el.insertAdjacentElement('beforeend', this.error);
+    this.reset();
   }
 
   validate() {
@@ -86,14 +87,29 @@ export default class Input {
   }
 
   get value() {
+    if (this.type === 'radio') {
+      return this.input.checked;
+    }
     return this.input.value.trim();
   }
 
   reset() {
+    if (this.type === 'radio') {
+      this.input.checked = false;
+      return;
+    }
     this.input.value = '';
   }
 
+  get type() {
+    return this.input.type;
+  }
+
   set value(value) {
+    if (this.type === 'radio') {
+      this.input.checked = value;
+      return;
+    }
     this.input.value = value;
   }
 }
